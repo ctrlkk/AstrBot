@@ -156,14 +156,15 @@ class AiocqhttpMessageEvent(AstrMessageEvent):
             return await super().send_streaming(generator, use_fallback)
 
         buffer = ""
-        pattern = re.compile(r"[^。？！~…]+[。？！~…]+")
+        # 这里将切割逻辑改为换行
+        pattern = re.compile(r"[^\n]+\n")
 
         async for chain in generator:
             if isinstance(chain, MessageChain):
                 for comp in chain.chain:
                     if isinstance(comp, Plain):
                         buffer += comp.text
-                        if any(p in buffer for p in "。？！~…"):
+                        if '\n' in buffer:
                             buffer = await self.process_buffer(buffer, pattern)
                     else:
                         await self.send(MessageChain(chain=[comp]))
